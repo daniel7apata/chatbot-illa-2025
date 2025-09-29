@@ -60,7 +60,7 @@ def generate_response(query, history):
 
     # Llamada a OpenAI con modelo gpt-4.1-mini
     response = openai.chat.completions.create(
-        model="gpt-4.1-nano",
+        model="gpt-5-nano",
         messages=api_messages,
         stream=True
     )
