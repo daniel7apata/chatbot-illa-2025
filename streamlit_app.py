@@ -8,6 +8,7 @@ from datetime import datetime, timezone, timedelta
 import docx 
 
 BOT_AVATAR = "bot_avatar.png"
+USER_AVATAR = "user_avatar.png"
 # Configuración de API Key
 os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -27,7 +28,7 @@ def session_id():
 # Función para escribir un mensaje en la UI de chat
 def write_message(message):
     if message["role"] == "user":
-        with st.chat_message("user"):
+        with st.chat_message("user", avatar=USER_AVATAR):
             st.write(message["content"])
     else:
         with st.chat_message("assistant", avatar=BOT_AVATAR):
