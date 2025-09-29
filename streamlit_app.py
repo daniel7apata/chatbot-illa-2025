@@ -46,7 +46,7 @@ def generate_response(query, history):
         "En caso de encontrar algún símbolo como <br> reemplázalo por un salto de línea\n"
         f"Fecha actual (GMT-5): {fecha_actual}, úsala como referencia\n"
         "En caso de preguntas relacionadas a la fecha, interprétala de forma natural o de formas más comunes de llamarla como 'el sabado pasado', 'este año', 'la semana pasada'\n"
-        f"Contexto Excel:\n{st.session_state.contexto_excel}"
+        #f"Contexto Excel:\n{st.session_state.contexto_excel}"
     )
 
     # Preparamos la lista de mensajes para la API: solo aquí va el system
@@ -263,12 +263,12 @@ def main():
         st.session_state.history = []
 
     # Carga del Excel y contexto
-    try:
-        df = pd.read_excel("datos.xlsx")
-        st.session_state.contexto_excel = df.to_string(index=False)
-    except Exception as e:
-        st.error(f"No se pudo cargar el archivo Excel: {e}")
-        st.session_state.contexto_excel = ""
+    #try:
+    #    df = pd.read_excel("datos.xlsx")
+    #    st.session_state.contexto_excel = df.to_string(index=False)
+    #except Exception as e:
+    #    st.error(f"No se pudo cargar el archivo Excel: {e}")
+    #    st.session_state.contexto_excel = ""
 
     # Introducción inicial del bot
     if not st.session_state.history:
