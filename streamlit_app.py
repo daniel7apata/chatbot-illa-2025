@@ -19,7 +19,7 @@ fecha_actual = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
 
 
 # Introducción del bot
-BOT_INTRODUCTION = "Hola, ¿Qué deseas saber?"
+BOT_INTRODUCTION = "Hola, soy Illa, encantada de conocerte. Estoy aquí para orientarte"
 
 # Función para generar un ID de sesión único
 def session_id():
