@@ -1,56 +1,286 @@
+import openai
 import streamlit as st
-from openai import OpenAI
+import streamlit.components.v1 as components
+import os
+import uuid
+import pandas as pd
+from datetime import datetime, timezone, timedelta
+import docx 
 
-# Show title and description.
-st.title("💬 Chatbot")
-st.write(
-    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate responses. "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
-    "You can also learn how to build this app step by step by [following our tutorial](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps)."
-)
+BOT_AVATAR = "bot_avatar.png"
+# Configuración de API Key
+os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
-openai_api_key = st.text_input("OpenAI API Key", type="password")
-if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
-else:
+# Definimos zona horaria GMT-5 y obtenemos fecha actual
+tz = timezone(timedelta(hours=-5))
+fecha_actual = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
 
-    # Create an OpenAI client.
-    client = OpenAI(api_key=openai_api_key)
 
-    # Create a session state variable to store the chat messages. This ensures that the
-    # messages persist across reruns.
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+# Introducción del bot
+BOT_INTRODUCTION = "Hola, ¿Qué deseas saber?"
 
-    # Display the existing chat messages via `st.chat_message`.
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
+# Función para generar un ID de sesión único
+def session_id():
+    return str(uuid.uuid4())
+
+# Función para escribir un mensaje en la UI de chat
+def write_message(message):
+    if message["role"] == "user":
+        with st.chat_message("user"):
+            st.write(message["content"])
+    else:
+        with st.chat_message("assistant", avatar=BOT_AVATAR):
             st.markdown(message["content"])
 
-    # Create a chat input field to allow the user to enter a message. This will display
-    # automatically at the bottom of the page.
-    if prompt := st.chat_input("What is up?"):
+# Función para generar respuesta desde OpenAI
+def generate_response(query, history):
+    # Construimos el mensaje system dinámico con fecha y contexto Excel
+    system_content = (
+            
+        "Eres Livia el asistente del Laboratorio de Periodismo de Datos de UPC - El Comercio, eres buena onda como un miembro más, alguien confiable (considera utilizar jergas de Perú, omitiendo groserias)\n"
+        "sabes todo lo relacionado al proyecto de examen de manejo, donde se busca sensibilizar sobre las ambiguedades y rarezas que presenta este proceso en Peru.\n"
+        "Solo puedes responder dudas relacionadas al laboratorio, sus miembros y actividades."
+        "Tu misión es ayudar a los integrantes del lab a conocer la información que necesiten sobre el proyecto de examenes de manejo (que aun se está desarrollando), tales como fechas, responsables, etc.\n"
+        "Si alguna persona te habla y te dice que es miembro del lab asume que es esa persona (ej: 'soy daniel' quien alguien cuyo nombre aparece, distinto a preguntar por alguien más), además menciona sus pendientes actuales y ayúdalo con lo que necesite en ese momento\n"
+        "En caso de encontrar algún símbolo como <br> reemplázalo por un salto de línea\n"
+        f"Fecha actual (GMT-5): {fecha_actual}, úsala como referencia\n"
+        "En caso de preguntas relacionadas a la fecha, interprétala de forma natural o de formas más comunes de llamarla como 'el sabado pasado', 'este año', 'la semana pasada'\n"
+        f"Contexto Excel:\n{st.session_state.contexto_excel}"
+    )
 
-        # Store and display the current prompt.
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+    # Preparamos la lista de mensajes para la API: solo aquí va el system
+    api_messages = [
+        {"role": "system", "content": system_content}
+    ]
+    # Agregamos el historial previo (sin viejos system)
+    api_messages += [m for m in history if m["role"] != "system"]
+    # Agregamos el nuevo mensaje de usuario
+    api_messages.append({"role": "user", "content": query})
 
-        # Generate a response using the OpenAI API.
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
+    # Llamada a OpenAI con modelo gpt-4.1-mini
+    response = openai.chat.completions.create(
+        model="gpt-4.1-nano",
+        messages=api_messages,
+        stream=True
+    )
+    return response
+
+# Procesa la interacción de chat
+def response_from_query(user_prompt):
+    # Refrescar UI con historial
+    for message in st.session_state.history:
+        write_message(message)
+
+    # Microconsulta para intención
+    intent_code = micro_intent_query(user_prompt)
+
+    if intent_code == "R002":
+        # Extraer texto de sesiones.docx
+        sesiones_text = extract_sesiones_text()
+        # Construir nuevo prompt con información adicional
+        prompt = (
+            f"{user_prompt}\n"
+            f"###Considera que hoy es {fecha_actual}, la siguiente es información las sesiones realizadas, úsala para atender la solicitud, entre paréntesis están los links a las grabaciones.###\n"
+            
+            f"{sesiones_text}"
         )
+        # Guardar el nuevo prompt en el historial
+        
+        stream_response = generate_response(prompt, st.session_state.history)
+    else:
+        if intent_code == "R003":
+            # Extraer texto de proyectos.docx
+            proyectos_text = extract_sesiones_text()
+            # Construir nuevo prompt con información adicional
+            prompt = (
+                f"{user_prompt}\n"
+                "###La siguiente es información de los proyectos del laboratorio, úsala de referencia para atender la solicitud del usuario###\n"
+                f"{proyectos_text}"
+            )
+            # Guardar el nuevo prompt en el historial
+            
+            stream_response = generate_response(prompt, st.session_state.history)
+        else:
+            
+            if intent_code == "R004":
+                # Extraer texto de perfiles.docx
+                perfiles_text = extract_perfiles_text()
+                # Construir nuevo prompt con información adicional
+                prompt = (
+                    f"{user_prompt}\n"
+                    "###La siguiente es información de los perfiles de los miembros, úsala de referencia para atender la solicitud del usuario, solo ellos son alumnos miembros###\n"
+                    f"{perfiles_text}"
+                )
+                # Guardar el nuevo prompt en el historial
+                
+                stream_response = generate_response(prompt, st.session_state.history)
+            else:
+                if intent_code == "R005":
+                    # Extraer texto de perfiles.docx
+                    comisiones_text = extract_comisiones_text()
+                    # Construir nuevo prompt con información adicional
+                    prompt = (
+                        f"{user_prompt}\n"
+                        "###La siguiente es información las comisiones o equipos responsables del proyecto, úsala de referencia para atender la solicitud del usuario###\n"
+                        f"{comisiones_text}"
+                    )
+                    # Guardar el nuevo prompt en el historial
+                    
+                    stream_response = generate_response(prompt, st.session_state.history)
+                else:
+                    if intent_code == "R006":
 
-        # Stream the response to the chat using `st.write_stream`, then store it in 
-        # session state.
-        with st.chat_message("assistant"):
-            response = st.write_stream(stream)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+                        prompt = (
+                            f" ### premisa\n\n - considerando la información de la sesiones pasadas, concretamente en la que Mayté enseñó a hacer pedidos de información, {user_prompt}.\n\n"
+
+                            """
+                            En ese sentido, necesito que el pedido de información que hagas sea específico, con el tipo de datos requeridos detallado y considera los campos que puedan ser útiles para tener suficiente para realizar un análisis exploratorio (no menciones que lo buscas con dicho objetivo).\n
+                            No indiques quien eres ni para qué quieres la información, ve directo a "solicito...". Usa un lenguaje claro, respetuoso y formal\n
+                            Si el periodo mencionado deberás hacerlo más detallado, ej: si digo 2020-2024, deberás escribirlo como "2020, 2021, 2022, 2023 y 2024". Menciona que la solicitud está basada en la Ley de Transparencia y Acceso a la Información Pública en Perú, lo que refuerza la legitimidad y urgencia del pedido.\n
+                            No debes utilizar subtítulos, únicamente texto plano o bullets. Solicita que indique acuse de recibo. Indica que se espera recibir una respuesta en 10 días habiles\n\n
+                            ### ejemplo de cómo realizarlo\n
+                            Contratos firmados con empresas de software para la adquisición de sistemas de evaluación para procesos de emisión de carnets o licencias de conducir:\n\n
+                            Incluye todos los contratos celebrados en 2020, 2021, 2022, 2023, 2024.\n
+                            Datos necesarios por contrato:\n
+                            * Número de contrato o identificación única\n
+                            * Nombre de la empresa proveedora\n
+                            * RUC o identificación fiscal de la empresa\n
+                            * Descripción del bien o servicio contratado (ejemplo: sistema de evaluación, emisión de carnets, licencias de software, etc.).\n
+                            * Fecha de firma del contrato\n
+                            * Valor total del contrato (importe adjudicado).\n
+                            * Vigencia del contrato (fecha de inicio y fin).\n
+                            * Unidad o área responsable (ejemplo: OSCE / área de licencias, etc.)\n\n
+                            Formato de entrega:\n
+                            * Archivo en formato Excel (.xlsx).\n
+                            * La información debe ser completa y consistente, sin celdas vacías en la medida de lo posible\n
+                            * En caso de que algún dato no esté disponible, por favor, indicarlo claramente con "No disponible"\n
+                            * Se solicita se indique un acuse de recibo\n\n
+                            ### consideraciones\n\
+                            Al final de tu respuesta preguntame si requiero anonimizar los datos y en base a mi respuesta ajusta la solicitud
+                            """
+                        )
+                        # Guardar el nuevo prompt en el historial
+                        
+                        stream_response = generate_response(prompt, st.session_state.history)
+                    else:
+                        # Solicitud estándar
+                        stream_response = generate_response(user_prompt, st.session_state.history)
+
+    # Mostrar respuesta del asistente y almacenar
+    with st.chat_message("assistant", avatar=BOT_AVATAR):
+        assistant_msg = st.write_stream(stream_response)
+    st.session_state.history.append({"role": "assistant", "content": assistant_msg})
+# ...existing code...
+    
+def micro_intent_query(user_prompt):
+    """
+    Consulta rápida para identificar si se debe mostrar información de reuniones pasadas.
+    Retorna 'R002' si se debe mostrar, 'R001' en caso contrario.
+    Retorna 'R003' si necesita info de proyectos.
+    """
+    system_content = (
+        "Considera los siguientes códigos de respuesta segun la información que requieras: "
+        "Actividades realizadas en reuniones o sesiones, responde R002. "
+        "Tareas o asignaciones dejadas en sesiones, responde R002. "
+        "Link de grabación de sesión pasada, responde R002. "
+        "Acuerdos sobre algún tema, responde R002. "
+        "Proyectos planificados, responde R003. "
+        "Descripciones del perfil de los miembros del lab como sus fortalezas o experiencia para asignar tareas, responde R004. "
+        "Persona más idonea para realizar algo en base a la descripción de su perfil, responde R004. "
+        "Roles de los miembros del lab o pregunta sobre alguien en específico, responde R004."
+        "Descripción de su perfil del usuario pues se presentó como uno de los miembros del lab y se necesita darle respuestas en el lenguaje que se emplea en su carrera, responde R004. "
+        "descripción de algún perfil, responde R004. "
+        "Comisiones o equipos responsables del proyecto, responde R005."
+        "Tabla de las comisiones, responde R005."
+        "Si el explicitamente te ordena redactar un pedido de información mencionando específicamente las palabras 'pedido de información' (considera que darte dicha orden es diferente a preguntarte cómo hacer uno o cualquier otra cosa), responde R006."
+        "Si no ocurre ninguno de los anteriores, responde R001, lo que significa una respuesta estándar. "
+        "En cualquier caso solo responde el código, nada más."
+    )
+    api_messages = [
+        {"role": "system", "content": system_content},
+        {"role": "user", "content": user_prompt}
+    ]
+    response = openai.chat.completions.create(
+        model="gpt-4.1-nano",
+        messages=api_messages,
+        stream=False
+    )
+    # Extrae el texto de la respuesta
+    code = response.choices[0].message.content.strip()
+    return code
+
+def extract_sesiones_text(docx_path="sesiones.docx"):
+    """
+    Extrae y retorna el texto completo del archivo sesiones.docx.
+    """
+    doc = docx.Document(docx_path)
+    full_text = []
+    for para in doc.paragraphs:
+        full_text.append(para.text)
+    return "\n".join(full_text)
+
+
+def extract_proyectos_text(docx_path="proyectos.docx"):
+    """
+    Extrae y retorna el texto completo del archivo proyectos.docx.
+    """
+    doc = docx.Document(docx_path)
+    full_text = []
+    for para in doc.paragraphs:
+        full_text.append(para.text)
+    return "\n".join(full_text)
+
+def extract_perfiles_text(docx_path="perfiles.docx"):
+    """
+    Extrae y retorna el texto completo del archivo perfiles.docx.
+    """
+    doc = docx.Document(docx_path)
+    full_text = []
+    for para in doc.paragraphs:
+        full_text.append(para.text)
+    return "\n".join(full_text)
+
+def extract_comisiones_text(excel_path="comisiones.xlsx"):
+    """
+    Extrae y retorna el contenido completo del archivo comisiones.xlsx como texto.
+    """
+    try:
+        df = pd.read_excel(excel_path)
+        return df.to_string(index=False)
+    except Exception as e:
+        return f"Error al leer el archivo Excel: {e}"
+
+
+
+# Función principal
+def main():
+    # Inicializar sesión
+    if "session_id" not in st.session_state:
+        st.session_state.session_id = session_id()
+    if "history" not in st.session_state:
+        # Solo guardamos mensajes user y assistant; system dinámico se genera al llamar
+        st.session_state.history = []
+
+    # Carga del Excel y contexto
+    try:
+        df = pd.read_excel("datos.xlsx")
+        st.session_state.contexto_excel = df.to_string(index=False)
+    except Exception as e:
+        st.error(f"No se pudo cargar el archivo Excel: {e}")
+        st.session_state.contexto_excel = ""
+
+    # Introducción inicial del bot
+    if not st.session_state.history:
+        with st.chat_message("assistant", avatar=BOT_AVATAR):
+            st.write(BOT_INTRODUCTION)
+        st.session_state.history.append({"role": "assistant", "content": BOT_INTRODUCTION})
+
+    # Input de usuario tipo chat
+    if prompt := st.chat_input(key="prompt", placeholder="Ingresa tu duda aquí..."):
+        # Guardar y procesar
+        st.session_state.history.append({"role": "user", "content": prompt})
+        response_from_query(prompt)
+
+if __name__ == "__main__":
+    main()
