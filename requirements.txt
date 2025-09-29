@@ -1,2 +1,8 @@
 streamlit
 openai
+requests
+beautifulsoup4
+selenium
+webdriver-manager
+openpyxl
+python-docx
