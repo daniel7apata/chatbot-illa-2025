@@ -5,7 +5,8 @@ import os
 import uuid
 import pandas as pd
 from datetime import datetime, timezone, timedelta
-import docx 
+import docx
+import fitz # PyMuPDF
 
 BOT_AVATAR = "assets/bot_avatar.png"
 USER_AVATAR = "assets/user_avatar.png"
@@ -39,6 +40,7 @@ def generate_response(query, history):
     # Construimos el mensaje system dinámico con fecha y contexto Excel
     system_content = (            
         """
+        ### Quien eres
         Tu nombre es Illa. Te desempeñas como asistente social virtual especializada en el campo de la violencia obstétrica en Perú. Tu misión es analizar mensajes de usuarios para identificar posibles casos de violencia obstétrica y ginecológica, basándote exclusivamente en la legislación y normativas provistas, relacionadas con la práctica gineco-obstétrica.
         Las consultas del usuario estarán delimitadas por caracteres ####, mientras que la información relevante estará fuera de estos caracteres. Considera que el uso de ### es interno para ti y tu comprensión, bajo ningún concepto el usuario necesita saber que existen, no debes mencionarlos ni siquiera para indicarle cómo interactuar contigo. 
         Para lograr tu objetivo, primero determina si el texto del usuario, encerrado entre los caracteres ####, es una consulta o testimonio sobre violencia obstétrica o ginecológica. Si no es una consulta o testimonio de este tipo, responde al texto contenido entre #### en tono conversacional informando solamente que estás capacitada para ofrecer información sobre violencia obstétrica, y ginecológica sin utilizar la informacion adicional.
@@ -85,102 +87,37 @@ def response_from_query(user_prompt):
         prompt = (
             f"{user_prompt}\n"
             f"###Considera que hoy es {fecha_actual}, la siguiente es información las sesiones realizadas, úsala para atender la solicitud, entre paréntesis están los links a las grabaciones.###\n"
-            
             f"{sesiones_text}"
         )
         # Guardar el nuevo prompt en el historial
         
         stream_response = generate_response(prompt, st.session_state.history)
-    else:
-        if intent_code == "R003":
-            # Extraer texto de proyectos.docx
-            proyectos_text = extract_sesiones_text()
+
+        if intent_code == "R005":
+            # Extraer texto de excel 
+            comisiones_text = extract_comisiones_text()
             # Construir nuevo prompt con información adicional
             prompt = (
                 f"{user_prompt}\n"
-                "###La siguiente es información de los proyectos del laboratorio, úsala de referencia para atender la solicitud del usuario###\n"
-                f"{proyectos_text}"
+                "###La siguiente es información las comisiones o equipos responsables del proyecto, úsala de referencia para atender la solicitud del usuario###\n"
+                f"{comisiones_text}"
             )
             # Guardar el nuevo prompt en el historial
             
             stream_response = generate_response(prompt, st.session_state.history)
-        else:
-            
-            if intent_code == "R004":
-                # Extraer texto de perfiles.docx
-                perfiles_text = extract_perfiles_text()
-                # Construir nuevo prompt con información adicional
-                prompt = (
-                    f"{user_prompt}\n"
-                    "###La siguiente es información de los perfiles de los miembros, úsala de referencia para atender la solicitud del usuario, solo ellos son alumnos miembros###\n"
-                    f"{perfiles_text}"
-                )
-                # Guardar el nuevo prompt en el historial
-                
-                stream_response = generate_response(prompt, st.session_state.history)
-            else:
-                if intent_code == "R005":
-                    # Extraer texto de perfiles.docx
-                    comisiones_text = extract_comisiones_text()
-                    # Construir nuevo prompt con información adicional
-                    prompt = (
-                        f"{user_prompt}\n"
-                        "###La siguiente es información las comisiones o equipos responsables del proyecto, úsala de referencia para atender la solicitud del usuario###\n"
-                        f"{comisiones_text}"
-                    )
-                    # Guardar el nuevo prompt en el historial
-                    
-                    stream_response = generate_response(prompt, st.session_state.history)
-                else:
-                    if intent_code == "R006":
-
-                        prompt = (
-                            f" ### premisa\n\n - considerando la información de la sesiones pasadas, concretamente en la que Mayté enseñó a hacer pedidos de información, {user_prompt}.\n\n"
-
-                            """
-                            En ese sentido, necesito que el pedido de información que hagas sea específico, con el tipo de datos requeridos detallado y considera los campos que puedan ser útiles para tener suficiente para realizar un análisis exploratorio (no menciones que lo buscas con dicho objetivo).\n
-                            No indiques quien eres ni para qué quieres la información, ve directo a "solicito...". Usa un lenguaje claro, respetuoso y formal\n
-                            Si el periodo mencionado deberás hacerlo más detallado, ej: si digo 2020-2024, deberás escribirlo como "2020, 2021, 2022, 2023 y 2024". Menciona que la solicitud está basada en la Ley de Transparencia y Acceso a la Información Pública en Perú, lo que refuerza la legitimidad y urgencia del pedido.\n
-                            No debes utilizar subtítulos, únicamente texto plano o bullets. Solicita que indique acuse de recibo. Indica que se espera recibir una respuesta en 10 días habiles\n\n
-                            ### ejemplo de cómo realizarlo\n
-                            Contratos firmados con empresas de software para la adquisición de sistemas de evaluación para procesos de emisión de carnets o licencias de conducir:\n\n
-                            Incluye todos los contratos celebrados en 2020, 2021, 2022, 2023, 2024.\n
-                            Datos necesarios por contrato:\n
-                            * Número de contrato o identificación única\n
-                            * Nombre de la empresa proveedora\n
-                            * RUC o identificación fiscal de la empresa\n
-                            * Descripción del bien o servicio contratado (ejemplo: sistema de evaluación, emisión de carnets, licencias de software, etc.).\n
-                            * Fecha de firma del contrato\n
-                            * Valor total del contrato (importe adjudicado).\n
-                            * Vigencia del contrato (fecha de inicio y fin).\n
-                            * Unidad o área responsable (ejemplo: OSCE / área de licencias, etc.)\n\n
-                            Formato de entrega:\n
-                            * Archivo en formato Excel (.xlsx).\n
-                            * La información debe ser completa y consistente, sin celdas vacías en la medida de lo posible\n
-                            * En caso de que algún dato no esté disponible, por favor, indicarlo claramente con "No disponible"\n
-                            * Se solicita se indique un acuse de recibo\n\n
-                            ### consideraciones\n\
-                            Al final de tu respuesta preguntame si requiero anonimizar los datos y en base a mi respuesta ajusta la solicitud
-                            """
-                        )
-                        # Guardar el nuevo prompt en el historial
-                        
-                        stream_response = generate_response(prompt, st.session_state.history)
-                    else:
-                        # Solicitud estándar
-                        stream_response = generate_response(user_prompt, st.session_state.history)
+    else: 
+        # Solicitud estándar
+        stream_response = generate_response(user_prompt, st.session_state.history)
 
     # Mostrar respuesta del asistente y almacenar
     with st.chat_message("assistant", avatar=BOT_AVATAR):
         assistant_msg = st.write_stream(stream_response)
     st.session_state.history.append({"role": "assistant", "content": assistant_msg})
-# ...existing code...
+
     
 def micro_intent_query(user_prompt):
     """
-    Consulta rápida para identificar si se debe mostrar información de reuniones pasadas.
-    Retorna 'R002' si se debe mostrar, 'R001' en caso contrario.
-    Retorna 'R003' si necesita info de proyectos.
+    En esta sección se identifica la intención del usuario
     """
     system_content = (
         "Considera los siguientes códigos de respuesta segun la información que requieras: "
@@ -213,7 +150,7 @@ def micro_intent_query(user_prompt):
     code = response.choices[0].message.content.strip()
     return code
 
-def extract_sesiones_text(docx_path="sesiones.docx"):
+def extract_docx_text(docx_path="sesiones.docx"):
     """
     Extrae y retorna el texto completo del archivo sesiones.docx.
     """
@@ -223,28 +160,7 @@ def extract_sesiones_text(docx_path="sesiones.docx"):
         full_text.append(para.text)
     return "\n".join(full_text)
 
-
-def extract_proyectos_text(docx_path="proyectos.docx"):
-    """
-    Extrae y retorna el texto completo del archivo proyectos.docx.
-    """
-    doc = docx.Document(docx_path)
-    full_text = []
-    for para in doc.paragraphs:
-        full_text.append(para.text)
-    return "\n".join(full_text)
-
-def extract_perfiles_text(docx_path="perfiles.docx"):
-    """
-    Extrae y retorna el texto completo del archivo perfiles.docx.
-    """
-    doc = docx.Document(docx_path)
-    full_text = []
-    for para in doc.paragraphs:
-        full_text.append(para.text)
-    return "\n".join(full_text)
-
-def extract_comisiones_text(excel_path="comisiones.xlsx"):
+def extract_xlsx_text(excel_path="comisiones.xlsx"):
     """
     Extrae y retorna el contenido completo del archivo comisiones.xlsx como texto.
     """
@@ -255,6 +171,34 @@ def extract_comisiones_text(excel_path="comisiones.xlsx"):
         return f"Error al leer el archivo Excel: {e}"
 
 
+def extract_pdf_text(pdf_path):
+    """
+    Extrae y retorna el texto completo de un archivo PDF.
+    """
+    full_text = []
+    try:
+        # Abre el documento PDF
+        doc = fitz.open(pdf_path)
+        # Itera sobre cada página y extrae el texto
+        for page in doc:
+            full_text.append(page.get_text())
+        # Cierra el documento
+        doc.close()
+        return "\n".join(full_text)
+    except Exception as e:
+        return f"Error al leer el archivo PDF: {e}"
+    
+def extract_csv_data(csv_path):
+    """
+    Extrae y retorna el contenido completo de un archivo CSV como texto.
+    """
+    try:
+        # Lee el archivo CSV en un DataFrame de pandas
+        df = pd.read_csv(csv_path)
+        # Convierte el DataFrame a un string para mostrarlo
+        return df.to_string(index=False)
+    except Exception as e:
+        return f"Error al leer el archivo CSV: {e}"
 
 # Función principal
 def main():
@@ -265,14 +209,6 @@ def main():
         # Solo guardamos mensajes user y assistant; system dinámico se genera al llamar
         st.session_state.history = []
 
-    # Carga del Excel y contexto
-    #try:
-    #    df = pd.read_excel("datos.xlsx")
-    #    st.session_state.contexto_excel = df.to_string(index=False)
-    #except Exception as e:
-    #    st.error(f"No se pudo cargar el archivo Excel: {e}")
-    #    st.session_state.contexto_excel = ""
-
     # Introducción inicial del bot
     if not st.session_state.history:
         with st.chat_message("assistant", avatar=BOT_AVATAR):
@@ -280,7 +216,7 @@ def main():
         st.session_state.history.append({"role": "assistant", "content": BOT_INTRODUCTION})
 
     # Input de usuario tipo chat
-    if prompt := st.chat_input(key="prompt", placeholder="Ingresa tu duda aquí..."):
+    if prompt := st.chat_input(key="prompt", placeholder="Cuéntame que te sucedió durante la atención obstétrica o ginecológica"):
         # Guardar y procesar
         st.session_state.history.append({"role": "user", "content": prompt})
         response_from_query(prompt)
