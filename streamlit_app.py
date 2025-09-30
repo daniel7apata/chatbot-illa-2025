@@ -120,7 +120,7 @@ def response_from_query(user_prompt):
         casos_violencia = extract_xlsx_text("assets/xlsx/casos_violencia_obstetrica.xlsx")
         # Construir nuevo prompt con información adicional
 
-        normativa1 = extract_pdf_text("assets/pdf/decreto_supremo_la_violencia_obstetrica_en_el_reglamento.pdf")
+        #normativa1 = extract_pdf_text("assets/pdf/decreto_supremo_la_violencia_obstetrica_en_el_reglamento.pdf")
         normativa2 = extract_pdf_text("assets/pdf/guia_nacional_atencion_integral_salud_sexual_y_reproductiva_2004.pdf")
         normativa3 = extract_pdf_text("assets/pdf/ley_violencia_contra_la_mujer.pdf")
         #normativa4 = extract_pdf_text("assets/pdf/norma_tecnica_de_salud_atencion_del_parto_vertical_en_el_marco_de_los_derechos_humanos_con_pertinencia_intercultural.pdf")
@@ -129,8 +129,8 @@ def response_from_query(user_prompt):
 
         prompt = (
             "### Normativas sobre violencia obstétrica o ginecológica: \n\n"
-            "\n## Normativa 1: Decreto Supremo que aprueba el Reglamento de la Ley Nº 30364: \n\n"
-            f"{normativa1}\n"
+            #"\n## Normativa 1: Decreto Supremo que aprueba el Reglamento de la Ley Nº 30364: \n\n"
+            #f"{normativa1}\n"
 
             "\n\n## Normativa 2: Guía Nacional de Atención Integral de la Salud Sexual y Reproductiva: \n\n"
             f"{normativa2}\n"
