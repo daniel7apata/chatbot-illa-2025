@@ -125,10 +125,15 @@ def micro_intent_query(user_prompt):
         "### Premisa: \n"
         "\nDeberás identificar la intención del usuario, de modo que pueda dársele una respuesta precisa en base a la información que necesite. "
         "Para ello, se han diseñado una serie de rutas, para que el usuario pueda acceder a cada una de ellas, tú debes identificar su intención."
-        "Cada ruta es un código único. Tu misión será retornar ese código único, única y exclusivamente el código, ninguna otra respuesta ni texto."
+        "Cada ruta es un código único, por ejemplo 'R002'. Tu misión será retornar ese código único, única y exclusivamente el código, ninguna otra respuesta ni texto."
         "Si no lograras identificar claramente la ruta o no es ninguna de las listadas en la sección 'Rutas', responde R001, lo que significa una respuesta estándar. En cualquier caso solo responde el código, nada más."
         "\n\n### Rutas: \n"
-        "\n# 1. El usuario cuenta su experiencia de violencia obstétrica, necesita identificar si es un caso: Responde con 'R002'."
+        "\n# Ruta 'R002'" 
+        "El usuario cuenta su experiencia de violencia obstétrica. la violencia obstétrica como actos de violencia "
+        "por parte del personal de salud en relación a procesos reproductivos, expresados en trato deshumanizado, "
+        "abuso de medicalización y patologización, que afectan la calidad de vida de las mujeres. "
+        "En este caso un indicador es que podría contarte que menciona que estuvo en una clínica u hospital, "
+        "o que fue atendido por personal de salud (médico, doctor, enfermera)."
         ""
     )
 
