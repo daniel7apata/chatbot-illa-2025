@@ -200,7 +200,7 @@ def micro_intent_query(user_prompt):
         {"role": "user", "content": user_prompt}
     ]
     response = openai.chat.completions.create(
-        model="gpt-5-nano",
+        model="gpt-4.1-nano",
         messages=api_messages,
         stream=False
     )
