@@ -123,7 +123,7 @@ def response_from_query(user_prompt):
         stream_response = generate_response(prompt, st.session_state.history)
     else:
         if intent_code == "R002":
-            
+
             st.warning("Solicitud de caso R002")
 
             # Extraer texto de excel 
@@ -133,9 +133,9 @@ def response_from_query(user_prompt):
             normativa1 = extract_pdf_text("assets/pdf/decreto_supremo_la_violencia_obstetrica_en_el_reglamento.pdf")
             normativa2 = extract_pdf_text("assets/pdf/guia_nacional_atencion_integral_salud_sexual_y_reproductiva_2004.pdf")
             normativa3 = extract_pdf_text("assets/pdf/ley_violencia_contra_la_mujer.pdf")
-            normativa4 = extract_pdf_text("assets/pdf/norma_tecnica_de_salud_atencion_del_parto_vertical_en_el_marco_de_los_derechos_humanos_con_pertinencia_intercultural.pdf")
-            normativa5 = extract_pdf_text("assets/pdf/plan_nacional_contra_la_violencia_de_genero.pdf")
-            normativa6 = extract_pdf_text("assets/pdf/prevencion_y_erradicacion_de_la_falta_de_respeto_y_maltrato_durante_el_parto_OMS.pdf")
+            #normativa4 = extract_pdf_text("assets/pdf/norma_tecnica_de_salud_atencion_del_parto_vertical_en_el_marco_de_los_derechos_humanos_con_pertinencia_intercultural.pdf")
+            #normativa5 = extract_pdf_text("assets/pdf/plan_nacional_contra_la_violencia_de_genero.pdf")
+            #normativa6 = extract_pdf_text("assets/pdf/prevencion_y_erradicacion_de_la_falta_de_respeto_y_maltrato_durante_el_parto_OMS.pdf")
 
             prompt = (
                 "### Normativas sobre violencia obstétrica o ginecológica: \n\n"
@@ -148,14 +148,14 @@ def response_from_query(user_prompt):
                 "\n\n## Normativa 3: Ley para Prevenir, Sancionar y Erradidar la Violencia contra las Mujeres y los Integrantes del Grupo Familiar: \n\n"
                 f"{normativa3}\n"
 
-                "\n\n## Normativa 4: Norma técnica de salud 'Atención del Parto Vertical en el Marco de los Derechos Humanos con Pertinencia Intercultural: '\n\n"
-                f"{normativa4}\n"
+                #"\n\n## Normativa 4: Norma técnica de salud 'Atención del Parto Vertical en el Marco de los Derechos Humanos con Pertinencia Intercultural: '\n\n"
+                #f"{normativa4}\n"
 
-                "\n\n## Normativa 5: Decreto Supremo que aprueba el 'Plan Nacional Contra la Violencia de Género'\n\n"
-                f"{normativa5}\n"
+                #"\n\n## Normativa 5: Decreto Supremo que aprueba el 'Plan Nacional Contra la Violencia de Género'\n\n"
+                #f"{normativa5}\n"
 
-                "\n\n## Normativa 6: Documento de la OMS sobre la Prevención y erradicación de la falta de respeto y el maltrato durante la atención del parto en centros de salud\n\n"
-                f"{normativa6}\n"
+                #"\n\n## Normativa 6: Documento de la OMS sobre la Prevención y erradicación de la falta de respeto y el maltrato durante la atención del parto en centros de salud\n\n"
+                #f"{normativa6}\n"
 
                 "\n### Caso presentado: \n"
                 f"\n{user_prompt}\n"
@@ -166,7 +166,7 @@ def response_from_query(user_prompt):
                 "\n### Premisa: \n"
                 "La información mostrada en la sección'Casos previos de violencia obstétrica' es una recopilación de casos de violencia obstétrica, debes determinar si el caso"
                 "propuesto en la sección 'Caso presentado' se alinea con las características con ello responder si se trata de un caso de violencia obstétrica."
-                "Tu respuesta, además, se debe sustentar en las 6 normativas presentadas en la sección 'Normativas sobre violencia obstétrica o ginecológica', "
+                "Tu respuesta, además, se debe sustentar en las 3 normativas presentadas en la sección 'Normativas sobre violencia obstétrica o ginecológica', "
                 "ya sea una específica o una combinación de varias. Al final de tu respuesta deberás indicar cuáles usaste."
                 
             )
