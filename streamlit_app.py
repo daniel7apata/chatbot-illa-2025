@@ -191,7 +191,7 @@ def micro_intent_query(user_prompt):
         "por parte del personal de salud en relación a procesos reproductivos, expresados en trato deshumanizado, "
         "abuso de medicalización y patologización, que afectan la calidad de vida de las mujeres. "
         "En este caso un indicador es que podría contarte que menciona que estuvo en una clínica u hospital, "
-        "o que fue atendido por personal de salud (médico, doctor, enfermera)."
+        "o que fue atendido por personal de salud (médico, doctor, enfermera). También puedes considerar casos de malos tratos en general, por ejemplo, racismo o clasismo."
         ""
     )
 
