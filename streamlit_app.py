@@ -119,24 +119,25 @@ def response_from_query(user_prompt):
         # Extraer texto de excel 
         casos_violencia = extract_xlsx_text("assets/xlsx/casos_violencia_obstetrica.xlsx")
         # Construir nuevo prompt con información adicional
-
-        #normativa1 = extract_pdf_text("assets/pdf/decreto_supremo_la_violencia_obstetrica_en_el_reglamento.pdf")
-        normativa2 = extract_pdf_text("assets/pdf/guia_nacional_atencion_integral_salud_sexual_y_reproductiva_2004.pdf")
-        normativa3 = extract_pdf_text("assets/pdf/ley_violencia_contra_la_mujer.pdf")
+        
+        normativa1 = extract_pdf_text("assets/pdf/guia_nacional_atencion_integral_salud_sexual_y_reproductiva_2004.pdf")
+        normativa2 = extract_pdf_text("assets/pdf/ley_violencia_contra_la_mujer.pdf")
+        #normativa3 = extract_pdf_text("assets/pdf/decreto_supremo_la_violencia_obstetrica_en_el_reglamento.pdf")
         #normativa4 = extract_pdf_text("assets/pdf/norma_tecnica_de_salud_atencion_del_parto_vertical_en_el_marco_de_los_derechos_humanos_con_pertinencia_intercultural.pdf")
         #normativa5 = extract_pdf_text("assets/pdf/plan_nacional_contra_la_violencia_de_genero.pdf")
         #normativa6 = extract_pdf_text("assets/pdf/prevencion_y_erradicacion_de_la_falta_de_respeto_y_maltrato_durante_el_parto_OMS.pdf")
 
         prompt = (
             "### Normativas sobre violencia obstétrica o ginecológica: \n\n"
-            #"\n## Normativa 1: Decreto Supremo que aprueba el Reglamento de la Ley Nº 30364: \n\n"
-            #f"{normativa1}\n"
 
-            "\n\n## Normativa 2: Guía Nacional de Atención Integral de la Salud Sexual y Reproductiva: \n\n"
+            "\n\n## Normativa 1: Guía Nacional de Atención Integral de la Salud Sexual y Reproductiva: \n\n"
+            f"{normativa1}\n"
+
+            "\n\n## Normativa 2: Ley para Prevenir, Sancionar y Erradidar la Violencia contra las Mujeres y los Integrantes del Grupo Familiar: \n\n"
             f"{normativa2}\n"
 
-            "\n\n## Normativa 3: Ley para Prevenir, Sancionar y Erradidar la Violencia contra las Mujeres y los Integrantes del Grupo Familiar: \n\n"
-            f"{normativa3}\n"
+            #"\n## Normativa 3: Decreto Supremo que aprueba el Reglamento de la Ley Nº 30364: \n\n"
+            #f"{normativa1}\n"
 
             #"\n\n## Normativa 4: Norma técnica de salud 'Atención del Parto Vertical en el Marco de los Derechos Humanos con Pertinencia Intercultural: '\n\n"
             #f"{normativa4}\n"
@@ -158,12 +159,11 @@ def response_from_query(user_prompt):
             "propuesto en la sección 'Caso presentado' se alinea con las características con ello responder si se trata de un caso de violencia obstétrica."
             "Tu respuesta, además, se debe sustentar únicamente en las normativas presentadas en la sección 'Normativas sobre violencia obstétrica o ginecológica', "
             "ya sea una específica o una combinación de varias. Al final de tu respuesta deberás indicar claramente"
-            "cuáles normativas usaste (no debes mencionar el número correlativo interno ej: 'Normativa 1', distinto es el número de la ley o decreto), "
+            "cuáles normativas usaste (no debes mencionar el número correlativo interno ej: 'Normativa 1', sino el nombre completo, que puede incluir el número de la ley o decreto), "
             "recuerda que pueden ser solo las de esa sección. "
             "Además, considera que el usuario no conoce cuáles normativas estás utilizando, asume que no lo sabe."
             "Siempre mantén un tono empático, cálido, y amigable. Asegúrate de que tu respuesta sea accesible, ofreciendo explicaciones "
             "claras sin recurrir a jerga especializada que el usuario pueda no entender."
-            
         )
         # Guardar el nuevo prompt en el historial            
         stream_response = generate_response(prompt, st.session_state.history)
@@ -205,7 +205,7 @@ def micro_intent_query(user_prompt):
         {"role": "user", "content": user_prompt}
     ]
     response = openai.chat.completions.create(
-        model="gpt-5-nano",
+        model="gpt-4.1-nano",
         messages=api_messages,
         stream=False
     )
