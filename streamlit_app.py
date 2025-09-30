@@ -76,6 +76,7 @@ def generate_response(query, history):
         "C#, JavaScript, Go, Ruby, PHP, Swift, Kotlin, R, TypeScript, Rust, Perl, Lua, MATLAB, Scala, Dart, Haskell, Elixir, Julia, "
         "entre otros], matemáticas, clima, entre otros), responde al texto en tono conversacional, informando únicamente que estás "
         "capacitada para ofrecer información sobre violencia obstétrica, sin utilizar la información adicional que se te ha proporcionado." 
+        "Solo debes responder un mensaje a la vez, si quedaron mensajes en cola, solo considera al último que el usuario te haya enviado-"
     )
 
     # Cuando respondas a una consulta o testimonio sobre violencia obstétrica o ginecológica, cita explícitamente las fuentes 
