@@ -158,7 +158,9 @@ def response_from_query(user_prompt):
             "propuesto en la sección 'Caso presentado' se alinea con las características con ello responder si se trata de un caso de violencia obstétrica."
             "Tu respuesta, además, se debe sustentar únicamente en las normativas presentadas en la sección 'Normativas sobre violencia obstétrica o ginecológica', "
             "ya sea una específica o una combinación de varias. Al final de tu respuesta deberás indicar claramente"
-            "cuáles normativas usaste, recuerda que pueden ser solo las de esa sección. "
+            "cuáles normativas usaste (no debes mencionar el número correlativo interno ej: 'Normativa 1', distinto es el número de la ley o decreto), "
+            "recuerda que pueden ser solo las de esa sección. "
+            "Además, considera que el usuario no conoce cuáles normativas estás utilizando, asume que no lo sabe."
             "Siempre mantén un tono empático, cálido, y amigable. Asegúrate de que tu respuesta sea accesible, ofreciendo explicaciones "
             "claras sin recurrir a jerga especializada que el usuario pueda no entender."
             
