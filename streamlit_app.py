@@ -123,6 +123,8 @@ def response_from_query(user_prompt):
         stream_response = generate_response(prompt, st.session_state.history)
     else:
         if intent_code == "R002":
+            print("Solicitud de caso R002")
+
             # Extraer texto de excel 
             casos_violencia = extract_xlsx_text("assets/xlsx/casos_violencia_obstetrica.xlsx")
             # Construir nuevo prompt con información adicional
@@ -172,6 +174,7 @@ def response_from_query(user_prompt):
 
         else: 
             # Solicitud estándar
+            print("Solicitud estandar R001")
             stream_response = generate_response(user_prompt, st.session_state.history)
 
     # Mostrar respuesta del asistente y almacenar
