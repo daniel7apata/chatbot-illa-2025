@@ -178,6 +178,9 @@ def response_from_query(user_prompt):
         else: 
             # Solicitud estándar
             print("Solicitud estandar R001")
+
+            st.write("Solicitud estandar R001")
+            st.warning("Solicitud estandar R001")
             stream_response = generate_response(user_prompt, st.session_state.history)
 
     # Mostrar respuesta del asistente y almacenar
