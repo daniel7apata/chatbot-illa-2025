@@ -125,6 +125,9 @@ def response_from_query(user_prompt):
         if intent_code == "R002":
             print("Solicitud de caso R002")
 
+            st.write("Solicitud de caso R002")
+            st.warning("Solicitud de caso R002")
+
             # Extraer texto de excel 
             casos_violencia = extract_xlsx_text("assets/xlsx/casos_violencia_obstetrica.xlsx")
             # Construir nuevo prompt con información adicional
