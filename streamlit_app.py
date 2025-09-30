@@ -120,7 +120,7 @@ def response_from_query(user_prompt):
         casos_violencia = extract_xlsx_text("assets/xlsx/casos_violencia_obstetrica.xlsx")
         # Construir nuevo prompt con información adicional
 
-        #normativa1 = extract_pdf_text("assets/pdf/decreto_supremo_la_violencia_obstetrica_en_el_reglamento.pdf")
+        normativa1 = extract_pdf_text("assets/pdf/decreto_supremo_la_violencia_obstetrica_en_el_reglamento.pdf")
         normativa2 = extract_pdf_text("assets/pdf/guia_nacional_atencion_integral_salud_sexual_y_reproductiva_2004.pdf")
         normativa3 = extract_pdf_text("assets/pdf/ley_violencia_contra_la_mujer.pdf")
         #normativa4 = extract_pdf_text("assets/pdf/norma_tecnica_de_salud_atencion_del_parto_vertical_en_el_marco_de_los_derechos_humanos_con_pertinencia_intercultural.pdf")
@@ -129,8 +129,8 @@ def response_from_query(user_prompt):
 
         prompt = (
             "### Normativas sobre violencia obstétrica o ginecológica: \n\n"
-            #"\n## Normativa 1: Decreto Supremo que aprueba el Reglamento de la Ley Nº 30364: \n\n"
-            #f"{normativa1}\n"
+            "\n## Normativa 1: Decreto Supremo que aprueba el Reglamento de la Ley Nº 30364: \n\n"
+            f"{normativa1}\n"
 
             "\n\n## Normativa 2: Guía Nacional de Atención Integral de la Salud Sexual y Reproductiva: \n\n"
             f"{normativa2}\n"
@@ -156,8 +156,9 @@ def response_from_query(user_prompt):
             "\n### Premisa: \n"
             "La información mostrada en la sección'Casos previos de violencia obstétrica' es una recopilación de casos de violencia obstétrica, debes determinar si el caso"
             "propuesto en la sección 'Caso presentado' se alinea con las características con ello responder si se trata de un caso de violencia obstétrica."
-            "Tu respuesta, además, se debe sustentar en las normativas presentadas en la sección 'Normativas sobre violencia obstétrica o ginecológica', "
-            "ya sea una específica o una combinación de varias. Al final de tu respuesta deberás indicar cuáles usaste."
+            "Tu respuesta, además, se debe sustentar únicamente en las normativas presentadas en la sección 'Normativas sobre violencia obstétrica o ginecológica', "
+            "ya sea una específica o una combinación de varias. Al final de tu respuesta deberás indicar claramente"
+            "cuáles normativas usaste, recuerda que pueden ser solo las de esa sección"
             
         )
         # Guardar el nuevo prompt en el historial            
