@@ -8,8 +8,8 @@ from datetime import datetime, timezone, timedelta
 import docx
 import fitz # PyMuPDF
 
-BOT_AVATAR = "assets/bot_avatar.png"
-USER_AVATAR = "assets/user_avatar.png"
+BOT_AVATAR = "assets/avatars/bot_avatar.png"
+USER_AVATAR = "assets/avatars/user_avatar.png"
 # Configuración de API Key
 os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -37,7 +37,7 @@ def write_message(message):
 
 # Función para generar respuesta desde OpenAI
 def generate_response(query, history):
-    # Construimos el mensaje system dinámico con fecha y contexto Excel
+
     system_content = (            
         """
         ### Quien eres
@@ -80,34 +80,36 @@ def response_from_query(user_prompt):
     # Microconsulta para intención
     intent_code = micro_intent_query(user_prompt)
 
-    if intent_code == "R002":
-        # Extraer texto de sesiones.docx
-        sesiones_text = extract_sesiones_text()
+    if intent_code == "R003":
+        texto_fuente = extract_docx_text()
         # Construir nuevo prompt con información adicional
         prompt = (
             f"{user_prompt}\n"
             f"###Considera que hoy es {fecha_actual}, la siguiente es información las sesiones realizadas, úsala para atender la solicitud, entre paréntesis están los links a las grabaciones.###\n"
-            f"{sesiones_text}"
+            f"{texto_fuente}"
         )
         # Guardar el nuevo prompt en el historial
         
         stream_response = generate_response(prompt, st.session_state.history)
-
-        if intent_code == "R005":
+    else:
+        if intent_code == "R002":
             # Extraer texto de excel 
-            comisiones_text = extract_comisiones_text()
+            texto_fuente = extract_xlsx_text("assets/xlsx/casos_violencia_obstetrica.xlsx")
             # Construir nuevo prompt con información adicional
             prompt = (
+                "\n### Caso presentado: \n"
                 f"{user_prompt}\n"
-                "###La siguiente es información las comisiones o equipos responsables del proyecto, úsala de referencia para atender la solicitud del usuario###\n"
-                f"{comisiones_text}"
+                "\n###Premisa: \n"
+                "La siguiente es información recopilada de casos de violencia obstétrica, debes determinar si el caso"
+                "propuesto se alinea con alguno y con ello responder si se trata de un caso de violencia obstétrica:\n"
+                f"{texto_fuente}"
             )
-            # Guardar el nuevo prompt en el historial
-            
+            # Guardar el nuevo prompt en el historial            
             stream_response = generate_response(prompt, st.session_state.history)
-    else: 
-        # Solicitud estándar
-        stream_response = generate_response(user_prompt, st.session_state.history)
+
+        else: 
+            # Solicitud estándar
+            stream_response = generate_response(user_prompt, st.session_state.history)
 
     # Mostrar respuesta del asistente y almacenar
     with st.chat_message("assistant", avatar=BOT_AVATAR):
@@ -120,29 +122,22 @@ def micro_intent_query(user_prompt):
     En esta sección se identifica la intención del usuario
     """
     system_content = (
-        "Considera los siguientes códigos de respuesta segun la información que requieras: "
-        "Actividades realizadas en reuniones o sesiones, responde R002. "
-        "Tareas o asignaciones dejadas en sesiones, responde R002. "
-        "Link de grabación de sesión pasada, responde R002. "
-        "Acuerdos sobre algún tema, responde R002. "
-        "Proyectos planificados, responde R003. "
-        "Descripciones del perfil de los miembros del lab como sus fortalezas o experiencia para asignar tareas, responde R004. "
-        "Persona más idonea para realizar algo en base a la descripción de su perfil, responde R004. "
-        "Roles de los miembros del lab o pregunta sobre alguien en específico, responde R004."
-        "Descripción de su perfil del usuario pues se presentó como uno de los miembros del lab y se necesita darle respuestas en el lenguaje que se emplea en su carrera, responde R004. "
-        "descripción de algún perfil, responde R004. "
-        "Comisiones o equipos responsables del proyecto, responde R005."
-        "Tabla de las comisiones, responde R005."
-        "Si el explicitamente te ordena redactar un pedido de información mencionando específicamente las palabras 'pedido de información' (considera que darte dicha orden es diferente a preguntarte cómo hacer uno o cualquier otra cosa), responde R006."
-        "Si no ocurre ninguno de los anteriores, responde R001, lo que significa una respuesta estándar. "
-        "En cualquier caso solo responde el código, nada más."
+        "### Premisa: \n"
+        "\nDeberás identificar la intención del usuario, de modo que pueda dársele una respuesta precisa en base a la información que necesite. "
+        "Para ello, se han diseñado una serie de rutas, para que el usuario pueda acceder a cada una de ellas, tú debes identificar su intención."
+        "Cada ruta es un código único. Tu misión será retornar ese código único, única y exclusivamente el código, ninguna otra respuesta ni texto."
+        "Si no lograras identificar claramente la ruta o no es ninguna de las listadas en la sección 'Rutas', responde R001, lo que significa una respuesta estándar. En cualquier caso solo responde el código, nada más."
+        "\n\n### Rutas: \n"
+        "\n# 1. El usuario cuenta su experiencia de violencia obstétrica, necesita identificar si es un caso: Responde con 'R002'."
+        ""
     )
+
     api_messages = [
         {"role": "system", "content": system_content},
         {"role": "user", "content": user_prompt}
     ]
     response = openai.chat.completions.create(
-        model="gpt-4.1-nano",
+        model="gpt-5-nano",
         messages=api_messages,
         stream=False
     )
@@ -188,7 +183,7 @@ def extract_pdf_text(pdf_path):
     except Exception as e:
         return f"Error al leer el archivo PDF: {e}"
     
-def extract_csv_data(csv_path):
+def extract_csv_text(csv_path):
     """
     Extrae y retorna el contenido completo de un archivo CSV como texto.
     """
