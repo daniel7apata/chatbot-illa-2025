@@ -123,9 +123,7 @@ def response_from_query(user_prompt):
         stream_response = generate_response(prompt, st.session_state.history)
     else:
         if intent_code == "R002":
-            print("Solicitud de caso R002")
-
-            st.write("Solicitud de caso R002")
+            
             st.warning("Solicitud de caso R002")
 
             # Extraer texto de excel 
@@ -177,9 +175,6 @@ def response_from_query(user_prompt):
 
         else: 
             # Solicitud estándar
-            print("Solicitud estandar R001")
-
-            st.write("Solicitud estandar R001")
             st.warning("Solicitud estandar R001")
             stream_response = generate_response(user_prompt, st.session_state.history)
 
