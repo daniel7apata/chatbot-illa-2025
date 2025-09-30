@@ -111,73 +111,62 @@ def response_from_query(user_prompt):
     # Microconsulta para intención
     intent_code = micro_intent_query(user_prompt)
 
-    if intent_code == "R003":
-        texto_fuente = extract_docx_text()
+
+    if intent_code == "R002":
+
+        st.warning("Solicitud de caso R002")
+
+        # Extraer texto de excel 
+        casos_violencia = extract_xlsx_text("assets/xlsx/casos_violencia_obstetrica.xlsx")
         # Construir nuevo prompt con información adicional
+
+        #normativa1 = extract_pdf_text("assets/pdf/decreto_supremo_la_violencia_obstetrica_en_el_reglamento.pdf")
+        normativa2 = extract_pdf_text("assets/pdf/guia_nacional_atencion_integral_salud_sexual_y_reproductiva_2004.pdf")
+        normativa3 = extract_pdf_text("assets/pdf/ley_violencia_contra_la_mujer.pdf")
+        #normativa4 = extract_pdf_text("assets/pdf/norma_tecnica_de_salud_atencion_del_parto_vertical_en_el_marco_de_los_derechos_humanos_con_pertinencia_intercultural.pdf")
+        #normativa5 = extract_pdf_text("assets/pdf/plan_nacional_contra_la_violencia_de_genero.pdf")
+        #normativa6 = extract_pdf_text("assets/pdf/prevencion_y_erradicacion_de_la_falta_de_respeto_y_maltrato_durante_el_parto_OMS.pdf")
+
         prompt = (
-            f"{user_prompt}\n"
-            f"###Considera que hoy es {fecha_actual}, la siguiente es información las sesiones realizadas, úsala para atender la solicitud, entre paréntesis están los links a las grabaciones.###\n"
-            f"{texto_fuente}"
+            "### Normativas sobre violencia obstétrica o ginecológica: \n\n"
+            #"\n## Normativa 1: Decreto Supremo que aprueba el Reglamento de la Ley Nº 30364: \n\n"
+            #f"{normativa1}\n"
+
+            "\n\n## Normativa 2: Guía Nacional de Atención Integral de la Salud Sexual y Reproductiva: \n\n"
+            f"{normativa2}\n"
+
+            "\n\n## Normativa 3: Ley para Prevenir, Sancionar y Erradidar la Violencia contra las Mujeres y los Integrantes del Grupo Familiar: \n\n"
+            f"{normativa3}\n"
+
+            #"\n\n## Normativa 4: Norma técnica de salud 'Atención del Parto Vertical en el Marco de los Derechos Humanos con Pertinencia Intercultural: '\n\n"
+            #f"{normativa4}\n"
+
+            #"\n\n## Normativa 5: Decreto Supremo que aprueba el 'Plan Nacional Contra la Violencia de Género'\n\n"
+            #f"{normativa5}\n"
+
+            #"\n\n## Normativa 6: Documento de la OMS sobre la Prevención y erradicación de la falta de respeto y el maltrato durante la atención del parto en centros de salud\n\n"
+            #f"{normativa6}\n"
+
+            "\n### Caso presentado: \n"
+            f"\n{user_prompt}\n"
+
+            "\n### Casos previos de violencia obstétrica: \n"
+            f"\n{casos_violencia}\n"
+
+            "\n### Premisa: \n"
+            "La información mostrada en la sección'Casos previos de violencia obstétrica' es una recopilación de casos de violencia obstétrica, debes determinar si el caso"
+            "propuesto en la sección 'Caso presentado' se alinea con las características con ello responder si se trata de un caso de violencia obstétrica."
+            "Tu respuesta, además, se debe sustentar en las normativas presentadas en la sección 'Normativas sobre violencia obstétrica o ginecológica', "
+            "ya sea una específica o una combinación de varias. Al final de tu respuesta deberás indicar cuáles usaste."
+            
         )
-        # Guardar el nuevo prompt en el historial
-        
+        # Guardar el nuevo prompt en el historial            
         stream_response = generate_response(prompt, st.session_state.history)
-    else:
-        if intent_code == "R002":
 
-            st.warning("Solicitud de caso R002")
-
-            # Extraer texto de excel 
-            casos_violencia = extract_xlsx_text("assets/xlsx/casos_violencia_obstetrica.xlsx")
-            # Construir nuevo prompt con información adicional
-
-            normativa1 = extract_pdf_text("assets/pdf/decreto_supremo_la_violencia_obstetrica_en_el_reglamento.pdf")
-            normativa2 = extract_pdf_text("assets/pdf/guia_nacional_atencion_integral_salud_sexual_y_reproductiva_2004.pdf")
-            normativa3 = extract_pdf_text("assets/pdf/ley_violencia_contra_la_mujer.pdf")
-            #normativa4 = extract_pdf_text("assets/pdf/norma_tecnica_de_salud_atencion_del_parto_vertical_en_el_marco_de_los_derechos_humanos_con_pertinencia_intercultural.pdf")
-            #normativa5 = extract_pdf_text("assets/pdf/plan_nacional_contra_la_violencia_de_genero.pdf")
-            #normativa6 = extract_pdf_text("assets/pdf/prevencion_y_erradicacion_de_la_falta_de_respeto_y_maltrato_durante_el_parto_OMS.pdf")
-
-            prompt = (
-                "### Normativas sobre violencia obstétrica o ginecológica: \n\n"
-                "\n## Normativa 1: Decreto Supremo que aprueba el Reglamento de la Ley Nº 30364: \n\n"
-                f"{normativa1}\n"
-
-                "\n\n## Normativa 2: Guía Nacional de Atención Integral de la Salud Sexual y Reproductiva: \n\n"
-                f"{normativa2}\n"
-
-                "\n\n## Normativa 3: Ley para Prevenir, Sancionar y Erradidar la Violencia contra las Mujeres y los Integrantes del Grupo Familiar: \n\n"
-                f"{normativa3}\n"
-
-                #"\n\n## Normativa 4: Norma técnica de salud 'Atención del Parto Vertical en el Marco de los Derechos Humanos con Pertinencia Intercultural: '\n\n"
-                #f"{normativa4}\n"
-
-                #"\n\n## Normativa 5: Decreto Supremo que aprueba el 'Plan Nacional Contra la Violencia de Género'\n\n"
-                #f"{normativa5}\n"
-
-                #"\n\n## Normativa 6: Documento de la OMS sobre la Prevención y erradicación de la falta de respeto y el maltrato durante la atención del parto en centros de salud\n\n"
-                #f"{normativa6}\n"
-
-                "\n### Caso presentado: \n"
-                f"\n{user_prompt}\n"
-
-                "\n### Casos previos de violencia obstétrica: \n"
-                f"\n{casos_violencia}\n"
-
-                "\n### Premisa: \n"
-                "La información mostrada en la sección'Casos previos de violencia obstétrica' es una recopilación de casos de violencia obstétrica, debes determinar si el caso"
-                "propuesto en la sección 'Caso presentado' se alinea con las características con ello responder si se trata de un caso de violencia obstétrica."
-                "Tu respuesta, además, se debe sustentar en las 3 normativas presentadas en la sección 'Normativas sobre violencia obstétrica o ginecológica', "
-                "ya sea una específica o una combinación de varias. Al final de tu respuesta deberás indicar cuáles usaste."
-                
-            )
-            # Guardar el nuevo prompt en el historial            
-            stream_response = generate_response(prompt, st.session_state.history)
-
-        else: 
-            # Solicitud estándar
-            st.warning("Solicitud estandar R001")
-            stream_response = generate_response(user_prompt, st.session_state.history)
+    else: 
+        # Solicitud estándar
+        st.warning("Solicitud estandar R001")
+        stream_response = generate_response(user_prompt, st.session_state.history)
 
     # Mostrar respuesta del asistente y almacenar
     with st.chat_message("assistant", avatar=BOT_AVATAR):
@@ -198,7 +187,7 @@ def micro_intent_query(user_prompt):
         "obstétrica o ginecológica, responde 'R001'. En cualquier caso solo responde el código, nada más. Por lo tanto, tus respuestas siempre serán de máximo 4 caracteres. "
         "\n\n### Rutas: \n"
         "\n# Ruta 'R002'" 
-        "El usuario cuenta su experiencia de violencia obstétrica. la violencia obstétrica como actos de violencia "
+        "El usuario cuenta su experiencia de violencia obstétrica. La violencia obstétrica se definie como los actos de violencia "
         "por parte del personal de salud en relación a procesos reproductivos, expresados en trato deshumanizado, "
         "abuso de medicalización y patologización, que afectan la calidad de vida de las mujeres. "
         "En este caso un indicador es que podría contarte que menciona que estuvo en una clínica u hospital, "
