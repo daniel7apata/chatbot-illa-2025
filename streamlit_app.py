@@ -114,7 +114,7 @@ def response_from_query(user_prompt):
 
     if intent_code == "R002":
 
-        st.warning("Solicitud de caso R002")
+        st.warning("Testimonio detectado")
 
         # Extraer texto de excel 
         casos_violencia = extract_xlsx_text("assets/xlsx/casos_violencia_obstetrica.xlsx")
@@ -158,7 +158,9 @@ def response_from_query(user_prompt):
             "propuesto en la sección 'Caso presentado' se alinea con las características con ello responder si se trata de un caso de violencia obstétrica."
             "Tu respuesta, además, se debe sustentar únicamente en las normativas presentadas en la sección 'Normativas sobre violencia obstétrica o ginecológica', "
             "ya sea una específica o una combinación de varias. Al final de tu respuesta deberás indicar claramente"
-            "cuáles normativas usaste, recuerda que pueden ser solo las de esa sección"
+            "cuáles normativas usaste, recuerda que pueden ser solo las de esa sección. "
+            "Siempre mantén un tono empático, cálido, y amigable. Asegúrate de que tu respuesta sea accesible, ofreciendo explicaciones "
+            "claras sin recurrir a jerga especializada que el usuario pueda no entender."
             
         )
         # Guardar el nuevo prompt en el historial            
@@ -166,7 +168,7 @@ def response_from_query(user_prompt):
 
     else: 
         # Solicitud estándar
-        st.warning("Solicitud estandar R001")
+        st.warning("No se identificó caso de violencia obstétrica o ginecológica")
         stream_response = generate_response(user_prompt, st.session_state.history)
 
     # Mostrar respuesta del asistente y almacenar
