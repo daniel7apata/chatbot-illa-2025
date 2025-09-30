@@ -7,8 +7,8 @@ import pandas as pd
 from datetime import datetime, timezone, timedelta
 import docx 
 
-BOT_AVATAR = "/assets/boy_avatar.png"
-USER_AVATAR = "/assets/user_avatar.png"
+BOT_AVATAR = "assets/boy_avatar.png"
+USER_AVATAR = "assets/user_avatar.png"
 # Configuración de API Key
 os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 openai.api_key = os.getenv('OPENAI_API_KEY')
